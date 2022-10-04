@@ -1,4 +1,5 @@
 import json
+import sys
 
 
 class Question:
@@ -6,7 +7,6 @@ class Question:
         self.titre = titre
         self.choix = choix
         self.bonne_reponse = bonne_reponse
-
 
     def from_json_data(data):
         choix = [i[0] for i in data["choix"]]
@@ -60,32 +60,46 @@ class Questionnaire:
 
         return Questionnaire(questions, data["categorie"], data["titre"], data["difficulte"])
 
+    def from_json_file(filename):
+        try:
+            file = open(filename, "r")
+            json_data = file.read()
+            file.close()
+            questionnaire_data = json.loads(json_data)
+        except:
+            print("Exception lors de l'ouverture ou la lecture du fichier")
+            return None
+        return Questionnaire.from_json_data(questionnaire_data)
+
     def lancer(self):
         score = 0
         nb_questions = len(self.questions)
-        print("--------")
+
+        print("-----")
         print("QUESTIONNAIRE : " + self.titre)
-        print(" Categorie : " + self.categorie)
-        print(" Difficulte : " + self.difficulte)
-        print(" Nombre de questions : " + str(nb_questions))
-        print("---------")
-        for i in range (len(self.questions)):
+        print("  Categorie : " + self.categorie)
+        print("  Difficulte : " + self.difficulte)
+        print("  Nombre de questions : " + str(nb_questions))
+        print("-----")
+
+        for i in range(nb_questions):
             question = self.questions[i]
-            if question.poser(i+1, nb_questions):
+            if question.poser(i + 1, nb_questions):
                 score += 1
         print("Score final :", score, "sur", len(self.questions))
         return score
 
 
-# Charger un fichier JSON
-filename = "cinema_starwars_debutant.json"
-file = open(filename, "r")
-json_data = file.read()
-file.close()
-questionnaire_data = json.loads(json_data)
+# Questionnaire.from_json_file("animaux_leschats_confirme.json").lancer()
+
+if len(sys.argv) < 2:
+    print("ERREUR : Vous devez spécifier le nom du fichier json à charger")
+    exit(0)
+
+json_filename = sys.argv[1]
+questionnaire = Questionnaire.from_json_file(json_filename)
+if questionnaire:
+    questionnaire.lancer()
 
 
-Questionnaire.from_json_data(questionnaire_data).lancer()
-
-print()
 
